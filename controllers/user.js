@@ -34,7 +34,6 @@ export const signUp = async (req, res) => {
        RETURNING *;`,
       [user.firstName, user.lastName, user.email, hashedPassword]
     );
-    console.log(newUser.rows);
     if (newUser.rows.length !== 0) {
       const token = jwt.sign({ email: user.email }, process.env.JWTSECRET, {
         expiresIn: "30d",
