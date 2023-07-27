@@ -153,7 +153,7 @@ export const forgotPassword = async (req, res) => {
       subject: "Reset your password",
       html: `<p>Hi ${
         firstName + " " + lastName
-      }, Please click on the link below to reset your password:</p><a href="https://localhost:3000/resetpassword/${token}">Reset your password</a>`,
+      }, Please click on the link below to reset your password:</p><a href="${process.env.FRONTENDURL}/resetpassword/${token}">Reset your password</a>`,
     };
 
     transporter.sendMail(mailOptions, function (error, info) {
@@ -183,10 +183,8 @@ export const resetPassword = async (req, res) => {
       [hashedPassword, true, email]
     );
 
-    const newToken = jwt.sign({ email: email }, process.env.JWTSECRET, {
-      expiresIn: "30d",
-    });
-    res.status(200).json({ token: newToken });
+   
+    res.status(200).json({ message: "success" });
   } catch (error) {
     res.status(500).json("database error");
   }
