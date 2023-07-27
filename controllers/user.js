@@ -52,7 +52,7 @@ export const signUp = async (req, res) => {
           user.firstName + " " + user.lastName
         },</p><p>Thank you for signing up to our service. Please click on the link below to confirm your account:</p><a href="${
           process.env.FRONTENDURL
-        }/confirm/${confirmToken}">Confirm your account</a>`,
+        }confirm/${confirmToken}">Confirm your account</a>`,
       };
 
       transporter.sendMail(mailOptions, function (error, info) {
@@ -153,7 +153,7 @@ export const forgotPassword = async (req, res) => {
         firstName + " " + lastName
       }, Please click on the link below to reset your password:</p><a href="${
         process.env.FRONTENDURL
-      }/resetpassword/${token}">Reset your password</a>`,
+      }resetpassword/${token}">Reset your password</a>`,
     };
 
     transporter.sendMail(mailOptions, function (error, info) {
@@ -225,7 +225,7 @@ export const sendConfirm = async (req, res) => {
         user.firstName + " " + user.lastName
       },</p><p>Thank you for signing up to our service. Please click on the link below to confirm your account:</p><a href="${
         process.env.FRONTENDURL
-      }/confirm/${confirmToken}">Confirm your account</a>`,
+      }confirm/${confirmToken}">Confirm your account</a>`,
     };
 
     transporter.sendMail(mailOptions, function (error, info) {
