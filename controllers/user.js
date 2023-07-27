@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 
 export const signUp = async (req, res) => {
   const user = req.body;
-  
+
   try {
     const existingUser = await pool.query(
       `Select * from "User" WHERE "email" = $1`,
@@ -51,7 +51,9 @@ export const signUp = async (req, res) => {
         subject: "Confirm your account",
         html: `<p>Hi ${
           user.firstName + " " + user.lastName
-        },</p><p>Thank you for signing up to our service. Please click on the link below to confirm your account:</p><a href="${process.env.FRONTENDURL}/confirm/${confirmToken}">Confirm your account</a>`,
+        },</p><p>Thank you for signing up to our service. Please click on the link below to confirm your account:</p><a href="${
+          process.env.FRONTENDURL
+        }/confirm/${confirmToken}">Confirm your account</a>`,
       };
 
       transporter.sendMail(mailOptions, function (error, info) {
@@ -76,16 +78,15 @@ export const confirm = async (req, res) => {
   try {
     const decodedToken = jwt.verify(token, process.env.JWTSECRET);
     const email = decodedToken.email;
-    await pool.query(
-      `UPDATE "User" SET "active" = $1 WHERE "email" = $2`,
-      [true, email]
-    );
+    await pool.query(`UPDATE "User" SET "active" = $1 WHERE "email" = $2`, [
+      true,
+      email,
+    ]);
 
-    const user = await pool.query(
-      `SELECT * FROM "User" WHERE "email" = $1`,
-      [email]
-    );
-   
+    const user = await pool.query(`SELECT * FROM "User" WHERE "email" = $1`, [
+      email,
+    ]);
+
     if (!user.rows.active) {
       const newToken = jwt.sign({ email: email }, process.env.JWTSECRET, {
         expiresIn: "30d",
@@ -153,7 +154,9 @@ export const forgotPassword = async (req, res) => {
       subject: "Reset your password",
       html: `<p>Hi ${
         firstName + " " + lastName
-      }, Please click on the link below to reset your password:</p><a href="${process.env.FRONTENDURL}/resetpassword/${token}">Reset your password</a>`,
+      }, Please click on the link below to reset your password:</p><a href="${
+        process.env.FRONTENDURL
+      }/resetpassword/${token}">Reset your password</a>`,
     };
 
     transporter.sendMail(mailOptions, function (error, info) {
@@ -183,7 +186,6 @@ export const resetPassword = async (req, res) => {
       [hashedPassword, true, email]
     );
 
-   
     res.status(200).json({ message: "success" });
   } catch (error) {
     res.status(500).json("database error");
@@ -191,7 +193,7 @@ export const resetPassword = async (req, res) => {
 };
 
 export const sendConfirm = async (req, res) => {
-  const  {token}  = req.body;
+  const { token } = req.body;
   console.log(token);
   try {
     const decodedToken = jwt.verify(token, process.env.JWTSECRET);
@@ -224,7 +226,9 @@ export const sendConfirm = async (req, res) => {
       subject: "Confirm your account",
       html: `<p>Hi ${
         user.firstName + " " + user.lastName
-      },</p><p>Thank you for signing up to our service. Please click on the link below to confirm your account:</p><a href="${process.env.FRONTENDURL}/confirm/${confirmToken}">Confirm your account</a>`,
+      },</p><p>Thank you for signing up to our service. Please click on the link below to confirm your account:</p><a href="${
+        process.env.FRONTENDURL
+      }/confirm/${confirmToken}">Confirm your account</a>`,
     };
 
     transporter.sendMail(mailOptions, function (error, info) {
@@ -263,7 +267,7 @@ export const getUser = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
     const data = user.rows[0];
-    return res.status(200).json( data );
+    return res.status(200).json(data);
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
       return res.status(401).json({ message: "Invalid token." });
