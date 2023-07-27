@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 
 export const signUp = async (req, res) => {
   const user = req.body;
-  console.log(user);
+  
   try {
     const existingUser = await pool.query(
       `Select * from "User" WHERE "email" = $1`,
@@ -29,9 +29,12 @@ export const signUp = async (req, res) => {
       return res.status(400).json({ message: "This email is already used." });
     const hashedPassword = await bcrypt.hash(user.password, 12);
     const newUser = await pool.query(
-      `INSERT INTO "User" ("firstName", "lastName", "email", "password") VALUES ($1, $2, $3, $4)`,
+      `INSERT INTO "User" ("firstName", "lastName", "email", "password")
+       VALUES ($1, $2, $3, $4)
+       RETURNING *;`,
       [user.firstName, user.lastName, user.email, hashedPassword]
     );
+    console.log(newUser.rows);
     if (newUser.rows.length !== 0) {
       const token = jwt.sign({ email: user.email }, process.env.JWTSECRET, {
         expiresIn: "30d",
@@ -48,7 +51,7 @@ export const signUp = async (req, res) => {
         subject: "Confirm your account",
         html: `<p>Hi ${
           user.firstName + " " + user.lastName
-        },</p><p>Thank you for signing up to our service. Please click on the link below to confirm your account:</p><a href="https://loclhost:3000/confirm/${confirmToken}">Confirm your account</a>`,
+        },</p><p>Thank you for signing up to our service. Please click on the link below to confirm your account:</p><a href="${process.env.FRONTENDURL}/confirm/${confirmToken}">Confirm your account</a>`,
       };
 
       transporter.sendMail(mailOptions, function (error, info) {
@@ -73,11 +76,17 @@ export const confirm = async (req, res) => {
   try {
     const decodedToken = jwt.verify(token, process.env.JWTSECRET);
     const email = decodedToken.email;
-    const user = ({ rows } = await pool.query(
+    await pool.query(
       `UPDATE "User" SET "active" = $1 WHERE "email" = $2`,
       [true, email]
-    ));
-    if (user.rows.active) {
+    );
+
+    const user = await pool.query(
+      `SELECT * FROM "User" WHERE "email" = $1`,
+      [email]
+    );
+   
+    if (!user.rows.active) {
       const newToken = jwt.sign({ email: email }, process.env.JWTSECRET, {
         expiresIn: "30d",
       });
@@ -93,6 +102,8 @@ export const confirm = async (req, res) => {
 export const signIn = async (req, res) => {
   const user = req.body;
 
+  console.log(user);
+
   try {
     const existingUser = await pool.query(
       'SELECT * FROM "User" WHERE "email" =$1',
@@ -103,7 +114,7 @@ export const signIn = async (req, res) => {
 
     const passwordValidate = await bcrypt.compare(
       user.password,
-      existingUser.rows.password
+      existingUser.rows[0].password
     );
     if (!passwordValidate)
       return res.status(400).json({ message: "Password is incorrect." });
@@ -182,9 +193,11 @@ export const resetPassword = async (req, res) => {
 };
 
 export const sendConfirm = async (req, res) => {
-  const { email } = req.body;
-
+  const  {token}  = req.body;
+  console.log(token);
   try {
+    const decodedToken = jwt.verify(token, process.env.JWTSECRET);
+    const email = decodedToken.email;
     const existingUser = await pool.query(
       `SELECT * FROM "User" WHERE "email" = $1`,
       [email]
@@ -213,7 +226,7 @@ export const sendConfirm = async (req, res) => {
       subject: "Confirm your account",
       html: `<p>Hi ${
         user.firstName + " " + user.lastName
-      },</p><p>Thank you for signing up to our service. Please click on the link below to confirm your account:</p><a href="https://loclhost:3000/confirm/${confirmToken}">Confirm your account</a>`,
+      },</p><p>Thank you for signing up to our service. Please click on the link below to confirm your account:</p><a href="${process.env.FRONTENDURL}/confirm/${confirmToken}">Confirm your account</a>`,
     };
 
     transporter.sendMail(mailOptions, function (error, info) {
@@ -234,7 +247,7 @@ export const sendConfirm = async (req, res) => {
 };
 
 export const getUser = async (req, res) => {
-  const token = req.headers.authorization;
+  const token = req.token;
 
   if (!token) {
     return res.status(401).json({ message: "No token provided." });
@@ -251,8 +264,8 @@ export const getUser = async (req, res) => {
     if (user.rows.length === 0) {
       return res.status(404).json({ message: "User not found." });
     }
-
-    return res.status(200).json({ user: user.rows[0] });
+    const data = user.rows[0];
+    return res.status(200).json( data );
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
       return res.status(401).json({ message: "Invalid token." });
