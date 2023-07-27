@@ -102,8 +102,6 @@ export const confirm = async (req, res) => {
 export const signIn = async (req, res) => {
   const user = req.body;
 
-  console.log(user);
-
   try {
     const existingUser = await pool.query(
       'SELECT * FROM "User" WHERE "email" =$1',
@@ -193,7 +191,7 @@ export const resetPassword = async (req, res) => {
 
 export const sendConfirm = async (req, res) => {
   const { token } = req.body;
-  console.log(token);
+
   try {
     const decodedToken = jwt.verify(token, process.env.JWTSECRET);
     const email = decodedToken.email;
