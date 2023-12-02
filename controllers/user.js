@@ -29,7 +29,7 @@ export const signUp = async (req, res) => {
       return res.status(400).json({ message: "This email is already used." });
     const hashedPassword = await bcrypt.hash(user.password, 12);
     const newUser = await pool.query(
-      `INSERT INTO "User" ("firstName", "lastName", "email", "password")
+      `INSERT INTO "User" ("firstname", "lastname", "email", "password")
        VALUES ($1, $2, $3, $4)
        RETURNING *;`,
       [user.firstName, user.lastName, user.email, hashedPassword]
