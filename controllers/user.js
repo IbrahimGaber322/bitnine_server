@@ -32,7 +32,7 @@ export const signUp = async (req, res) => {
       `INSERT INTO "User" ("firstname", "lastname", "email", "password")
        VALUES ($1, $2, $3, $4)
        RETURNING *;`,
-      [user.firstName, user.lastName, user.email, hashedPassword]
+      [user.firstname, user.lastname, user.email, hashedPassword]
     );
     if (newUser.rows.length !== 0) {
       const token = jwt.sign({ email: user.email }, process.env.JWTSECRET, {
@@ -49,7 +49,7 @@ export const signUp = async (req, res) => {
         to: user.email,
         subject: "Confirm your account",
         html: `<p>Hi ${
-          user.firstName + " " + user.lastName
+          user.firstname + " " + user.lastname
         },</p><p>Thank you for signing up to our service. Please click on the link below to confirm your account:</p><a href="${
           process.env.FRONTENDURL
         }confirm/${confirmToken}">Confirm your account</a>`,
@@ -140,7 +140,7 @@ export const forgotPassword = async (req, res) => {
     if (user.rows.length === 0)
       return res.status(400).json({ message: "No user with this email" });
 
-    const { firstName, lastName, email } = user.rows[0];
+    const { firstname, lastname, email } = user.rows[0];
     const token = jwt.sign({ email: email }, process.env.JWTSECRET, {
       expiresIn: "5min",
     });
@@ -150,7 +150,7 @@ export const forgotPassword = async (req, res) => {
       to: email,
       subject: "Reset your password",
       html: `<p>Hi ${
-        firstName + " " + lastName
+        firstname + " " + lastname
       }, Please click on the link below to reset your password:</p><a href="${
         process.env.FRONTENDURL
       }resetpassword/${token}">Reset your password</a>`,
@@ -222,7 +222,7 @@ export const sendConfirm = async (req, res) => {
       to: user.email,
       subject: "Confirm your account",
       html: `<p>Hi ${
-        user.firstName + " " + user.lastName
+        user.firstname + " " + user.lastname
       },</p><p>Thank you for signing up to our service. Please click on the link below to confirm your account:</p><a href="${
         process.env.FRONTENDURL
       }confirm/${confirmToken}">Confirm your account</a>`,
